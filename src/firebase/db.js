@@ -12,14 +12,19 @@ import {
   orderBy
 } from 'firebase/firestore';
 
-export const DEFAULT_BOARD_ID = '271201035';
+export const DEFAULT_BOARD_ID = 'reverse-engineering';
+export const LEGACY_DEFAULT_ID = '271201035';
+
+export function isDefaultBoardId(id) {
+  return !id || id === 'reverse-engineering' || id === '271201035';
+}
 
 /**
  * Check if the database already has data; if not, seed initial board data.
  */
 export async function seedInitialDataIfEmpty(db, initialBoard, initialSections, initialPosts) {
   try {
-    const boardRef = doc(db, 'boards', String(initialBoard.id || DEFAULT_BOARD_ID));
+    const boardRef = doc(db, 'boards', DEFAULT_BOARD_ID);
     const boardSnap = await getDoc(boardRef);
 
     if (!boardSnap.exists()) {
@@ -27,7 +32,7 @@ export async function seedInitialDataIfEmpty(db, initialBoard, initialSections, 
       // 1. Seed default board
       await setDoc(boardRef, {
         ...initialBoard,
-        id: String(initialBoard.id || DEFAULT_BOARD_ID),
+        id: DEFAULT_BOARD_ID,
         isLocked: false,
         updatedAt: new Date().toISOString()
       });
@@ -37,7 +42,7 @@ export async function seedInitialDataIfEmpty(db, initialBoard, initialSections, 
         const secRef = doc(db, 'sections', String(section.id));
         await setDoc(secRef, {
           ...section,
-          boardId: String(initialBoard.id || DEFAULT_BOARD_ID),
+          boardId: DEFAULT_BOARD_ID,
           updatedAt: new Date().toISOString()
         });
       }
@@ -47,7 +52,7 @@ export async function seedInitialDataIfEmpty(db, initialBoard, initialSections, 
         const postRef = doc(db, 'posts', String(post.id));
         await setDoc(postRef, {
           ...post,
-          boardId: String(initialBoard.id || DEFAULT_BOARD_ID),
+          boardId: DEFAULT_BOARD_ID,
           updatedAt: new Date().toISOString()
         });
       }
@@ -79,7 +84,8 @@ export function subscribeToBoards(db, callback) {
  * Subscribe to a specific Board in real time
  */
 export function subscribeToBoard(db, boardId, callback) {
-  const targetId = String(boardId || DEFAULT_BOARD_ID);
+  const isDefault = isDefaultBoardId(boardId);
+  const targetId = isDefault ? DEFAULT_BOARD_ID : String(boardId);
   const boardRef = doc(db, 'boards', targetId);
   return onSnapshot(boardRef, (docSnap) => {
     if (docSnap.exists()) {
@@ -96,16 +102,20 @@ export function subscribeToBoard(db, boardId, callback) {
  * Subscribe to Sections for a specific board in real time
  */
 export function subscribeToSections(db, boardId, callback) {
-  const targetId = String(boardId || DEFAULT_BOARD_ID);
+  const isDefault = isDefaultBoardId(boardId);
   const q = query(collection(db, 'sections'), orderBy('sort_index', 'asc'));
   return onSnapshot(q, (snapshot) => {
     const sections = snapshot.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      // Support legacy sections that may not have boardId (assign them to default board)
-      .filter(s => String(s.boardId || DEFAULT_BOARD_ID) === targetId);
+      .filter(s => {
+        if (isDefault) {
+          return !s.boardId || isDefaultBoardId(s.boardId);
+        }
+        return String(s.boardId) === String(boardId);
+      });
     callback(sections);
   }, (error) => {
-    console.error(`Sections subscription error for board [${targetId}]:`, error);
+    console.error(`Sections subscription error for board [${boardId}]:`, error);
   });
 }
 
@@ -113,16 +123,20 @@ export function subscribeToSections(db, boardId, callback) {
  * Subscribe to Posts for a specific board in real time
  */
 export function subscribeToPosts(db, boardId, callback) {
-  const targetId = String(boardId || DEFAULT_BOARD_ID);
+  const isDefault = isDefaultBoardId(boardId);
   const q = collection(db, 'posts');
   return onSnapshot(q, (snapshot) => {
     const posts = snapshot.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      // Filter by boardId (support legacy posts)
-      .filter(p => String(p.boardId || DEFAULT_BOARD_ID) === targetId);
+      .filter(p => {
+        if (isDefault) {
+          return !p.boardId || isDefaultBoardId(p.boardId);
+        }
+        return String(p.boardId) === String(boardId);
+      });
     callback(posts);
   }, (error) => {
-    console.error(`Posts subscription error for board [${targetId}]:`, error);
+    console.error(`Posts subscription error for board [${boardId}]:`, error);
   });
 }
 

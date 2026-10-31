@@ -39,7 +39,8 @@ import {
   addCommentToPost,
   deleteCommentFromPost,
   resetFirestoreToInitial,
-  DEFAULT_BOARD_ID
+  DEFAULT_BOARD_ID,
+  isDefaultBoardId
 } from './firebase/db';
 import { Plus, Flame, Sparkles, Lock, ArrowLeft } from 'lucide-react';
 
@@ -65,7 +66,7 @@ export default function App() {
   // Current active board ID
   const [currentBoardId, setCurrentBoardId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get('board') || String(INITIAL_BOARD.id || DEFAULT_BOARD_ID);
+    return params.get('board') || DEFAULT_BOARD_ID;
   });
 
   // All boards list
@@ -74,11 +75,14 @@ export default function App() {
     if (local) {
       try { return JSON.parse(local); } catch (e) {}
     }
-    return [{ ...INITIAL_BOARD, id: String(INITIAL_BOARD.id || DEFAULT_BOARD_ID) }];
+    return [{ ...INITIAL_BOARD, id: DEFAULT_BOARD_ID }];
   });
 
-  // Active board object
-  const activeBoard = boards.find(b => String(b.id) === String(currentBoardId)) || boards[0] || INITIAL_BOARD;
+  // Active board object: Ensure fallback NEVER incorrectly latches onto other classroom boards
+  const isCurrentDefault = isDefaultBoardId(currentBoardId);
+  const activeBoard = isCurrentDefault
+    ? (boards.find(b => isDefaultBoardId(b.id)) || { ...INITIAL_BOARD, id: DEFAULT_BOARD_ID })
+    : (boards.find(b => String(b.id) === String(currentBoardId)) || boards.find(b => isDefaultBoardId(b.id)) || { ...INITIAL_BOARD, id: DEFAULT_BOARD_ID });
 
   // Sections & Posts for active board
   const [sections, setSections] = useState(() => {
@@ -86,10 +90,10 @@ export default function App() {
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        return parsed.filter(s => String(s.boardId || DEFAULT_BOARD_ID) === String(currentBoardId));
+        return parsed.filter(s => isCurrentDefault ? isDefaultBoardId(s.boardId) : String(s.boardId) === String(currentBoardId));
       } catch (e) {}
     }
-    return INITIAL_SECTIONS.map(s => ({ ...s, boardId: String(INITIAL_BOARD.id || DEFAULT_BOARD_ID) }));
+    return INITIAL_SECTIONS.map(s => ({ ...s, boardId: DEFAULT_BOARD_ID }));
   });
 
   const [posts, setPosts] = useState(() => {
@@ -97,10 +101,10 @@ export default function App() {
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        return parsed.filter(p => String(p.boardId || DEFAULT_BOARD_ID) === String(currentBoardId));
+        return parsed.filter(p => isCurrentDefault ? isDefaultBoardId(p.boardId) : String(p.boardId) === String(currentBoardId));
       } catch (e) {}
     }
-    return INITIAL_POSTS.map(p => ({ ...p, boardId: String(INITIAL_BOARD.id || DEFAULT_BOARD_ID) }));
+    return INITIAL_POSTS.map(p => ({ ...p, boardId: DEFAULT_BOARD_ID }));
   });
 
   // Firebase status
@@ -523,9 +527,9 @@ export default function App() {
         localStorage.removeItem(LOCAL_STORAGE_BOARDS);
         localStorage.removeItem(LOCAL_STORAGE_SECTIONS);
         localStorage.removeItem(LOCAL_STORAGE_POSTS);
-        setBoards([{ ...INITIAL_BOARD, id: String(INITIAL_BOARD.id || DEFAULT_BOARD_ID) }]);
-        setSections(INITIAL_SECTIONS.map(s => ({ ...s, boardId: String(INITIAL_BOARD.id || DEFAULT_BOARD_ID) })));
-        setPosts(INITIAL_POSTS.map(p => ({ ...p, boardId: String(INITIAL_BOARD.id || DEFAULT_BOARD_ID) })));
+        setBoards([{ ...INITIAL_BOARD, id: DEFAULT_BOARD_ID }]);
+        setSections(INITIAL_SECTIONS.map(s => ({ ...s, boardId: DEFAULT_BOARD_ID })));
+        setPosts(INITIAL_POSTS.map(p => ({ ...p, boardId: DEFAULT_BOARD_ID })));
       }
     }
   };
