@@ -9,6 +9,7 @@ import AdminLoginModal from './components/AdminLoginModal';
 import SlideshowModal from './components/SlideshowModal';
 import PostDetailModal from './components/PostDetailModal';
 import TeacherDashboard from './components/TeacherDashboard';
+import EmptyBoardState from './components/EmptyBoardState';
 import WallView from './components/WallView';
 import StreamView from './components/StreamView';
 import TableView from './components/TableView';
@@ -199,7 +200,7 @@ export default function App() {
 
       // 1. Subscribe to all boards
       const unsubBoards = subscribeToBoards(db, (boardsData) => {
-        if (boardsData && boardsData.length > 0) {
+        if (boardsData) {
           setBoards(boardsData);
         }
       });
@@ -559,25 +560,83 @@ export default function App() {
 
   const activeFontTheme = FONT_PRESETS.find(f => f.id === activeBoard.fontTheme) || FONT_PRESETS[0];
 
-  // If in Dashboard view mode (Teacher view)
-  if (viewMode === 'dashboard') {
+  // 1. If Teacher Dashboard view mode, or if Teacher is logged in and no boards exist yet
+  if (viewMode === 'dashboard' || (isAdmin && boards.length === 0)) {
     return (
-      <TeacherDashboard
-        boards={boards}
-        sections={sections}
-        posts={posts}
-        onSelectBoard={handleSelectBoard}
-        onCreateBoard={handleCreateBoard}
-        onUpdateBoard={handleUpdateBoard}
-        onDeleteBoard={handleDeleteBoard}
-        onLogout={handleAdminLogout}
-        onOpenFirebase={() => setIsFirebaseOpen(true)}
-        firebaseStatus={firebaseStatus}
-      />
+      <>
+        <TeacherDashboard
+          boards={boards}
+          sections={sections}
+          posts={posts}
+          onSelectBoard={handleSelectBoard}
+          onCreateBoard={handleCreateBoard}
+          onUpdateBoard={handleUpdateBoard}
+          onDeleteBoard={handleDeleteBoard}
+          onLogout={handleAdminLogout}
+          onOpenFirebase={() => setIsFirebaseOpen(true)}
+          firebaseStatus={firebaseStatus}
+        />
+        <FirebaseModal
+          isOpen={isFirebaseOpen}
+          onClose={() => setIsFirebaseOpen(false)}
+          firebaseStatus={firebaseStatus}
+          onConfigUpdated={setupFirebase}
+        />
+      </>
     );
   }
 
-  // Otherwise, render Board view (Student & Teacher view of a specific board)
+  // 2. If student/visitor and no boards exist at all in the school
+  if (!isAdmin && boards.length === 0) {
+    return (
+      <>
+        <EmptyBoardState
+          onOpenLogin={() => setIsAdminLoginOpen(true)}
+          onOpenFirebase={() => setIsFirebaseOpen(true)}
+          firebaseStatus={firebaseStatus}
+        />
+        <AdminLoginModal
+          isOpen={isAdminLoginOpen}
+          onClose={() => setIsAdminLoginOpen(false)}
+          onLoginSuccess={handleAdminLoginSuccess}
+        />
+        <FirebaseModal
+          isOpen={isFirebaseOpen}
+          onClose={() => setIsFirebaseOpen(false)}
+          firebaseStatus={firebaseStatus}
+          onConfigUpdated={setupFirebase}
+        />
+      </>
+    );
+  }
+
+  // 3. If student/visitor accessed a specific board URL that does not exist or was deleted
+  const isTargetBoardMissing = !isCurrentDefault && !boards.some(b => String(b.id) === String(currentBoardId));
+  if (!isAdmin && isTargetBoardMissing) {
+    return (
+      <>
+        <EmptyBoardState
+          boardNotFound={true}
+          onOpenLogin={() => setIsAdminLoginOpen(true)}
+          onOpenFirebase={() => setIsFirebaseOpen(true)}
+          firebaseStatus={firebaseStatus}
+        />
+        <AdminLoginModal
+          isOpen={isAdminLoginOpen}
+          onClose={() => setIsAdminLoginOpen(false)}
+          onLoginSuccess={handleAdminLoginSuccess}
+        />
+        <FirebaseModal
+          isOpen={isFirebaseOpen}
+          onClose={() => setIsFirebaseOpen(false)}
+          firebaseStatus={firebaseStatus}
+          onConfigUpdated={setupFirebase}
+        />
+      </>
+    );
+  }
+
+  // 4. Otherwise, render Board view (Student & Teacher view of a specific board)
   return (
     <div 
       className="h-screen w-screen flex flex-col overflow-hidden antialiased selection:bg-pink-300 selection:text-pink-900"
