@@ -31,7 +31,7 @@ export default function StreamView({
     : sortedPosts.filter(p => p.sectionId === selectedSectionId);
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden">
       {/* Section Filter Pills */}
       <div className="px-6 py-2.5 flex items-center justify-between bg-white/40 backdrop-blur-md border-b border-black/5 flex-shrink-0 overflow-x-auto">
         <div className="flex items-center space-x-1.5 overflow-x-auto py-1">
@@ -78,7 +78,7 @@ export default function StreamView({
       </div>
 
       {/* Vertical Feed Container */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8 pb-32">
         <div className="max-w-xl mx-auto space-y-6 pb-24">
           {filteredPosts.length > 0 ? (
             filteredPosts.map((post) => {

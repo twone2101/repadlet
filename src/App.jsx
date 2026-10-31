@@ -580,7 +580,7 @@ export default function App() {
   // Otherwise, render Board view (Student & Teacher view of a specific board)
   return (
     <div 
-      className="min-h-screen flex flex-col antialiased selection:bg-pink-300 selection:text-pink-900"
+      className="h-screen w-screen flex flex-col overflow-hidden antialiased selection:bg-pink-300 selection:text-pink-900"
       style={{
         ...backgroundStyle,
         fontFamily: activeFontTheme.fontFamily
@@ -612,7 +612,7 @@ export default function App() {
 
       {/* Locked Notice Banner */}
       {activeBoard.isLocked && (
-        <div className="bg-amber-500 text-white px-4 py-2 text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 shadow-md animate-fadeIn z-20">
+        <div className="bg-amber-500 text-white px-4 py-2 text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 shadow-md animate-fadeIn z-20 flex-shrink-0">
           <Lock className="w-4 h-4" />
           <span>수업 종료로 현재 글쓰기가 잠겨 있습니다. (게시글 열람만 가능합니다)</span>
           {isAdmin && (
@@ -628,7 +628,7 @@ export default function App() {
 
       {/* 1. Shelf (Kanban Columns) */}
       {layout === 'shelf' && (
-        <main className="flex-1 overflow-x-auto overflow-y-hidden p-6 flex items-start space-x-6 z-10">
+        <main className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden p-6 flex items-start space-x-6 z-10">
           {sections.map((section) => {
             const sectionPosts = filteredPosts.filter(p => p.sectionId === section.id);
             return (

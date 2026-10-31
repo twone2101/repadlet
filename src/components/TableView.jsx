@@ -86,7 +86,7 @@ export default function TableView({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden">
       {/* Top Filter and Table Actions */}
       <div className="px-6 py-2.5 flex items-center justify-between bg-white/50 backdrop-blur-md border-b border-black/5 flex-shrink-0 overflow-x-auto">
         <div className="flex items-center space-x-1.5 overflow-x-auto py-1">
@@ -146,7 +146,7 @@ export default function TableView({
       </div>
 
       {/* Main Table Content Container */}
-      <div className="flex-1 overflow-auto p-4 sm:p-6">
+      <div className="flex-1 min-h-0 overflow-auto p-4 sm:p-6 pb-28">
         <div className="bg-white/85 backdrop-blur-md rounded-2xl shadow-lg border border-black/10 overflow-hidden">
           <table className="w-full text-left border-collapse text-xs">
             {/* Table Header */}

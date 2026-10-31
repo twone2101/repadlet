@@ -31,7 +31,7 @@ export default function WallView({
   });
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden">
       {/* Section Filter Pills Header */}
       <div className="px-6 py-2.5 flex items-center justify-between bg-white/40 backdrop-blur-md border-b border-black/5 flex-shrink-0 overflow-x-auto">
         <div className="flex items-center space-x-1.5 overflow-x-auto py-1">
@@ -79,7 +79,7 @@ export default function WallView({
       </div>
 
       {/* Masonry / Grid Wall Container */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-28">
         {filteredPosts.length > 0 ? (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
             {filteredPosts.map((post) => {

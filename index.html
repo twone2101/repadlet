@@ -28,26 +28,36 @@
       }
     </script>
     <style>
-      /* Custom scrollbar for horizontal columns */
+      /* Clean, clearly visible scrollbars for all views */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
       }
       ::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.08);
+        border-radius: 9999px;
       }
       ::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.25);
-        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 9999px;
+        border: 2px solid transparent;
+        background-clip: content-box;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(244, 63, 94, 0.7); /* Pink accent on hover */
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+
+      /* Firefox scrollbar support */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.08);
       }
     </style>
   </head>
-  <body class="font-sans antialiased text-gray-900 select-none overflow-hidden m-0 p-0">
-    <div id="root"></div>
+  <body class="font-sans antialiased text-gray-900 select-none overflow-hidden m-0 p-0 h-screen w-screen">
+    <div id="root" class="h-full w-full overflow-hidden"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

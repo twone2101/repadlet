@@ -57,9 +57,9 @@ export default function Column({
   };
 
   return (
-    <div className="w-72 sm:w-80 flex-shrink-0 flex flex-col max-h-full rounded-2xl bg-white/70 backdrop-blur-md border border-white/60 shadow-lg shadow-black/5 overflow-hidden transition-all">
+    <div className="w-72 sm:w-80 flex-shrink-0 flex flex-col h-full max-h-full rounded-2xl bg-white/70 backdrop-blur-md border border-white/60 shadow-lg shadow-black/5 overflow-hidden transition-all">
       {/* Column Header */}
-      <div className="px-4 py-3 flex items-center justify-between border-b border-black/5 bg-white/40">
+      <div className="px-4 py-3 flex items-center justify-between border-b border-black/5 bg-white/40 flex-shrink-0">
         <div className="flex items-center space-x-2 flex-1 min-w-0">
           {isAdmin && isEditingTitle ? (
             <form onSubmit={handleTitleSubmit} className="flex items-center space-x-1 flex-1">
@@ -142,7 +142,7 @@ export default function Column({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`flex-1 overflow-y-auto p-3 transition-colors ${
+        className={`flex-1 min-h-0 overflow-y-auto p-3 transition-colors space-y-3.5 ${
           isAdmin && isDragOver 
             ? 'bg-pink-100/40 border-2 border-dashed border-pink-400 rounded-xl' 
             : ''
@@ -175,7 +175,7 @@ export default function Column({
       </div>
 
       {/* Column Footer: Add Post Button (일반 방문자도 작성 가능) */}
-      <div className="p-3 border-t border-black/5 bg-white/30">
+      <div className="p-3 border-t border-black/5 bg-white/30 flex-shrink-0">
         <button
           onClick={() => onAddPost(section.id)}
           className="w-full py-2 px-3 rounded-xl bg-white hover:bg-pink-50 active:bg-pink-100 text-gray-700 hover:text-pink-600 border border-black/10 hover:border-pink-300 font-semibold text-xs flex items-center justify-center space-x-1.5 transition-all shadow-xs"

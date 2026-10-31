@@ -71,7 +71,7 @@ export default function TeacherDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-pink-50/20 to-indigo-50/20 flex flex-col font-sans">
+    <div className="h-screen w-screen overflow-y-auto bg-gradient-to-br from-slate-50 via-pink-50/20 to-indigo-50/20 flex flex-col font-sans pb-16">
       {/* Top Navbar */}
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/80 px-4 sm:px-8 py-3.5 shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
