@@ -18,6 +18,37 @@ import confetti from 'canvas-confetti';
 import { COLOR_PALETTE, filterProfanity } from '../data/initialData';
 
 // Curated high-res educational & technology stock images by category
+// 파일 사이즈 제한 (800KB) 및 이미지 압축 헬퍼 함수
+const MAX_ATTACHMENT_SIZE = 800 * 1024; // 800KB
+
+/**
+ * 이미지 파일을 캔버스로 압축합니다.
+ * @param {File} file - 원본 이미지 파일
+ * @param {number} maxWidth - 최대 너비 (px)
+ * @param {number} quality - JPEG 품질 (0~1)
+ * @returns {Promise<string>} 압축된 DataURL (JPEG)
+ */
+function compressImage(file, maxWidth = 1200, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target.result;
+    };
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, maxWidth / img.width);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressedDataUrl);
+    };
+    img.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
 const CURATED_IMAGE_COLLECTIONS = {
   '학교': [
     { url: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&auto=format&fit=crop&q=80", title: "학교 교실과 칠판" },
@@ -136,10 +167,48 @@ export default function PostModal({
     setActiveTab('none');
   };
 
-  // Image File Upload handler
+  // Image File Upload handler with size limit and compression
   const handleImageFileUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
+    if (!file) return;
+    // 파일 사이즈 제한
+    if (file.size > MAX_ATTACHMENT_SIZE) {
+      alert('파일이 너무 큽니다 (800KB 이하만 허용됩니다).');
+      return;
+    }
+    // 이미지 압축
+    if (file.type && file.type.startsWith('image/')) {
+      compressImage(file)
+        .then((compressedDataUrl) => {
+          // 압축 후 크기 확인 (approximate)
+          const approxSize = Math.round((compressedDataUrl.length * 3) / 4);
+          if (approxSize > MAX_ATTACHMENT_SIZE) {
+            alert('압축 후에도 파일이 너무 큽니다. 파일을 줄여 주세요.');
+            return;
+          }
+          setAttachment({
+            type: 'image',
+            url: compressedDataUrl,
+            caption: file.name
+          });
+          setActiveTab('none');
+        })
+        .catch((err) => {
+          console.error('이미지 압축 오류:', err);
+          // fallback: use original file
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setAttachment({
+              type: 'image',
+              url: event.target.result,
+              caption: file.name
+            });
+            setActiveTab('none');
+          };
+          reader.readAsDataURL(file);
+        });
+    } else {
+      // 비이미지 파일은 그대로 읽음
       const reader = new FileReader();
       reader.onload = (event) => {
         setAttachment({
@@ -153,29 +222,29 @@ export default function PostModal({
     }
   };
 
-  // General File (PDF, DOCX, ZIP, etc.) Upload handler
+  // General File (PDF, DOCX, ZIP, 등) Upload handler with size limit
   const handleGeneralFileUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        // Calculate readable file size
-        const sizeInKb = file.size / 1024;
-        const sizeFormatted = sizeInKb > 1024 
-          ? (sizeInKb / 1024).toFixed(1) + ' MB' 
-          : Math.round(sizeInKb) + ' KB';
-
-        setAttachment({
-          type: 'file',
-          url: event.target.result,
-          name: file.name,
-          size: sizeFormatted,
-          fileType: file.type || 'application/octet-stream'
-        });
-        setActiveTab('none');
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    // 파일 사이즈 제한
+    if (file.size > MAX_ATTACHMENT_SIZE) {
+      alert('파일이 너무 큽니다 (800KB 이하만 허용됩니다).');
+      return;
     }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const sizeInKb = file.size / 1024;
+      const sizeFormatted = sizeInKb > 1024 ? (sizeInKb / 1024).toFixed(1) + ' MB' : Math.round(sizeInKb) + ' KB';
+      setAttachment({
+        type: 'file',
+        url: event.target.result,
+        name: file.name,
+        size: sizeFormatted,
+        fileType: file.type || 'application/octet-stream'
+      });
+      setActiveTab('none');
+    };
+    reader.readAsDataURL(file);
   };
 
   // Web Image Search handler (Queries Wikimedia Commons API with fallback to curated library)
